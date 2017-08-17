@@ -116,10 +116,9 @@ def enqueue_job(event):
 		fp.write(xmlstr)
 
 	compressor_info = run_output(
-		'/Applications/Compressor.app/Contents/MacOS/Compressor -batchname {batchname} -jobpath {jobpath} -settingpath {home}/Library/Application\ Support/Compressor/Settings/Apple\ ProRes\ 4444.cmprstng -locationpath {locationpath}',
+		'/Applications/Compressor.app/Contents/MacOS/Compressor -batchname {batchname} -jobpath {jobpath} -settingpath apple-prores-4444.cmprstng -locationpath {locationpath}',
 			batchname=describe_event(event),
 			jobpath=work_doc,
-			home=os.getenv('HOME'),
 			locationpath=intermediate_clip)
 
 	match = re.search("<jobID ([A-Z0-9\-]+) ?\/>", compressor_info)
@@ -174,7 +173,7 @@ def finalize_job(job_id, event):
 	intermediate_clip = os.path.join(tempdir.name, event_id+'.mov')
 	final_clip = os.path.join(os.path.dirname(args.motn), event_id+'.ts')
 
-	run('ffmpeg -y -hide_banner -loglevel error -i "{input}" -ar 48000 -ac 1 -f s16le -i /dev/zero -map 0:0 -c:v mpeg2video -q:v 0 -aspect 16:9 -map 1:0 -map 1:0 -map 1:0 -map 1:0 -shortest -f mpegts "{output}"',
+	run('ffmpeg -y -hide_banner -loglevel error -i "{input}" -ar 48000 -ac 1 -f s16le -i /dev/zero -map 0:v -c:v mpeg2video -q:v 0 -aspect 16:9 -map 1:0 -map 1:0 -map 1:0 -map 1:0 -shortest -f mpegts "{output}"',
 		input=intermediate_clip,
 		output=final_clip)
 
@@ -184,7 +183,7 @@ def finalize_job(job_id, event):
 
 active_jobs = []
 
-print("enqueuing {} jobs into compressor", len(events))
+print("enqueuing {} jobs into compressor".format(len(events)))
 for event in events:
 	if args.ids and event['id'] not in args.ids:
 		continue
